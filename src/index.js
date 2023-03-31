@@ -88,7 +88,7 @@ client.on('messageCreate', async message => {
                 }
         
                 .ticket-message {
-                    height: 50px;
+                    height: 50px ;
                     margin-top: 1rem;
                     padding-inline: 1rem;
                     display: flex;
