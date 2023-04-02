@@ -6,6 +6,7 @@ const {
     ButtonBuilder,
     ButtonStyle,
     EmbedBuilder,
+    StringSelectMenuBuilder
 } = require('discord.js');
 
 const client = new Client({
@@ -30,10 +31,18 @@ client.on('ready', async (c) => {
         const row = new ActionRowBuilder();
 
         row.components.push(
-            new ButtonBuilder()
-                .setCustomId("create-ticket")
-                .setLabel('Otwórz ticket!')
-                .setStyle(ButtonStyle.Secondary)
+            new StringSelectMenuBuilder()
+                .addOptions([
+                    { label: 'ck☠️', value: 'ck' },
+                    { label: 'pytanie📝', value: 'pytanie' },
+                    { label: 'Zwrot✨', value: 'zwrot' },
+                    { label: 'Skarga🤬', value: 'skarga' },
+                    { label: 'Podanie o ub🪧', value: 'ub' },
+                    { label: 'błędy🛠️', value: 'bledy' },
+                    { label: 'inne🛡️', value: 'inne' },
+                ])
+                .setCustomId('create-ticket')
+                .setPlaceholder('Wybierz kategorię 😎')
         )
         await channel.send({
             embeds: [embed],
