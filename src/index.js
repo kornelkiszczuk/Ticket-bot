@@ -76,11 +76,7 @@ client.on('interactionCreate', async interaction => {
 
             // const user = await client.users.fetch(interaction.user.id);
             const channel = client.channels.cache.get(interaction.channelId);
-            const transcriptChannel = await interaction.guild.channels.create({
-                name: `${interaction.user.tag}`,
-                type: ChannelType.GuildText,
-                parent: "1091509451044950116"
-            })
+            const transcriptChannel = client.channels.cache.get("1092099439725903912")
             const messages = await channel.messages.fetch();
             const transcript = [];
 
@@ -195,7 +191,7 @@ client.on('interactionCreate', async interaction => {
             </html>
             `
             const attachment = new AttachmentBuilder(Buffer.from(htmlCode), { name: 'transcript.html' });
-            await transcriptChannel.send({ content: "Here is the transcript", files: [attachment] })
+            await transcriptChannel.send({ content: `<@${interaction.user.id}>`, files: [attachment] })
             // await user.send({ content: "Here is the transcript", files: [attachment] })
             await interaction.guild.channels.delete(interaction.channelId)
 
