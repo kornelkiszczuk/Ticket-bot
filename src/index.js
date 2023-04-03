@@ -34,7 +34,6 @@ client.on("interactionCreate", async (interaction) => {
         const date = new Date(timestamp);
         const user = interaction.user;
 
-
         const channel = await interaction.guild.channels.create({
             name: `${interaction.values}-${interaction.user.tag}`,
             type: ChannelType.GuildText,
@@ -88,7 +87,7 @@ client.on("interactionCreate", async (interaction) => {
         )
 
         await channel.send({
-            content: `<@${interaction.user.id}>`,
+            content: `@${interaction.user.username}`,
             embeds: [embed],
             components: [row]
         })
@@ -107,11 +106,20 @@ client.on("interactionCreate", async (interaction) => {
 })
 
 
-client.on('interactionCreate', async interaction => {
+const isReplyOnChannel = new Map();
+
+client.channels.cache.forEach(channel => {
+    channelData.set(channel.id, false);
+});
+
+client.on('interactionCreate', async (interaction) => {
     if (!interaction.isButton()) return;
 
     if (interaction.customId === "exit-ticket") {
         await interaction.deferReply()
+        const channel = client.channels.cache.get(interaction.channelId);
+        const replyData = isReplyOnChannel.get(channel.id)
+
         const btns = [
             {
                 customId: "confirm-exit-ticket",
@@ -124,6 +132,10 @@ client.on('interactionCreate', async interaction => {
                 color: ButtonStyle.Secondary
             },
         ]
+        if (replyData) {
+            await interaction.deleteReply()
+            return;
+        }
 
         const embed = new EmbedBuilder()
             .setDescription("Napewno chcesz zamknąć ticket ?")
@@ -145,6 +157,7 @@ client.on('interactionCreate', async interaction => {
             embeds: [embed],
             components: [row]
         })
+        isReplyOnChannel.set(channel.id, true)
     }
 });
 
@@ -153,6 +166,8 @@ client.on('interactionCreate', async interaction => {
     if (!interaction.isButton()) return;
 
     if (interaction.customId === "cancel") {
+        const channel = client.channels.cache.get(interaction.channelId);
+        isReplyOnChannel.set(channel.id, false)
         await interaction.message.delete();
     }
 })
@@ -166,6 +181,7 @@ client.on('interactionCreate', async interaction => {
             const date = new Date(timestamp);
             const channel = client.channels.cache.get(interaction.channelId);
             const transcriptChannel = client.channels.cache.get("1092099439725903912")
+            // ponizej fetchowanie zapisanego uzytkownika zakladajacego ticket
             const getUserId = userChannelData.get(channel.id)
             const userOfTicket = await client.users.fetch(getUserId);
             const messages = await channel.messages.fetch();
@@ -282,7 +298,15 @@ client.on('interactionCreate', async interaction => {
             `
             const attachment = new AttachmentBuilder(Buffer.from(htmlCode), { name: 'transcript.html' });
             await transcriptChannel.send({ content: `<@${userOfTicket.id}> - ${date.toLocaleString()}`, files: [attachment] })
-            await userOfTicket.send({ content: `Ticket został zamknięty przez <@${interaction.user.id}>.`, files: [attachment] })
+            try {
+                const dmChannel = await userOfTicket.createDM();
+                await dmChannel.send({
+                    content: `Ticket został zamknięty przez <@${interaction.user.id}>.`,
+                    files: [attachment]
+                });
+            } catch (error) {
+                console.error(`Error sending DM to user ${userOfTicket.username}: ${error}`);
+            }
             interaction.guild.channels.delete(interaction.channelId)
 
         } catch (error) {

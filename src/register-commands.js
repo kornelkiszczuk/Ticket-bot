@@ -3,39 +3,27 @@ require('dotenv').config();
 
 const commands = [
     {
-        name: "embed",
-        description: "Sends an embed!"
-    },
-    {
-        name: "add",
-        description: "adds two numbers",
-        options: [
+        name: "deletefromticket",
+        description: "Usuwa użytkownikowi dostęp do przeglądania danego ticketu, w którym została użyta komenda",
+        option: [
             {
-                name: 'first-number',
-                description: 'The first number',
+                name: 'userid',
+                description: 'numer id użytkownika',
                 type: ApplicationCommandOptionType.Number,
-                choices: [
-                    {
-                        name: 'one',
-                        value: 1
-                    },
-                    {
-                        name: 'two',
-                        value: 2
-                    },
-                    {
-                        name: 'three',
-                        value: 3
-                    }
-                ],
                 required: true
             },
+        ]
+    },
+    {
+        name: "addtoticket",
+        description: "Dodaje użytkownikowi dostęp do przeglądania danego ticketu, w którym została użyta komenda",
+        option: [
             {
-                name: 'second-number',
-                description: 'The second number',
+                name: 'userid',
+                description: 'numer id użytkownika',
                 type: ApplicationCommandOptionType.Number,
                 required: true
-            }
+            },
         ]
     }
 ]
