@@ -1,4 +1,11 @@
-const { Client, IntentsBitField, EmbedBuilder, GatewayIntentBits, AttachmentBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, Chann, ChannelType } = require('discord.js')
+const { Client,
+    IntentsBitField,
+    EmbedBuilder,
+    AttachmentBuilder,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ChannelType } = require('discord.js')
 
 require('dotenv').config();
 
@@ -15,6 +22,9 @@ client.on('ready', async (client) => {
     console.log(`${client.user.username} is ready!`)
 })
 
+const userChannelData = new Map();
+// do zapisywania id usera ktory założył kanał
+
 client.on("interactionCreate", async (interaction) => {
     if (!interaction.isAnySelectMenu()) return;
 
@@ -22,17 +32,46 @@ client.on("interactionCreate", async (interaction) => {
 
         const timestamp = interaction.createdTimestamp;
         const date = new Date(timestamp);
+        const user = interaction.user;
 
 
         const channel = await interaction.guild.channels.create({
             name: `${interaction.values}-${interaction.user.tag}`,
             type: ChannelType.GuildText,
-            parent: "1091071531507011624"
+            parent: "1091071531507011624",
+            permissionOverwrites: [
+                {
+                    id: '1091731417072930877',
+                    allow: ['0x00000400']
+                },
+                {
+                    id: '1091731492213895259',
+                    allow: ['0x00000400']
+                },
+                {
+                    id: '1091731552809009314',
+                    allow: ['0x00000400']
+                },
+                {
+                    id: '1091731587030339604',
+                    allow: ['0x00000400']
+                },
+                {
+                    id: '1091731637148069891',
+                    allow: ['0x00000400']
+                },
+                {
+                    id: interaction.user.id,
+                    allow: ['0x00000400']
+                }
+            ]
         })
-        interaction.reply({
-            content: `The channel was created! Here's the link: ${channel.toString()}`,
+        await interaction.reply({
+            content: `Kanał został stworzony! Klinkij, aby przejść: ${channel.toString()}`,
             ephemeral: true,
         });
+        // poniżej zapisuje użytkownika
+        userChannelData.set(channel.id, user.id)
         const embed = new EmbedBuilder()
             .setAuthor({ name: `${interaction.user.username}#${interaction.user.discriminator}`, iconURL: interaction.user.avatarURL() })
             .setDescription("Wkrótcę zjawi się tu ktoś, aby Ci pomóc.")
@@ -72,11 +111,63 @@ client.on('interactionCreate', async interaction => {
     if (!interaction.isButton()) return;
 
     if (interaction.customId === "exit-ticket") {
-        try {
+        await interaction.deferReply()
+        const btns = [
+            {
+                customId: "confirm-exit-ticket",
+                label: "Potwierdź",
+                color: ButtonStyle.Primary
+            },
+            {
+                customId: "cancel",
+                label: "Anuluj",
+                color: ButtonStyle.Secondary
+            },
+        ]
 
-            // const user = await client.users.fetch(interaction.user.id);
+        const embed = new EmbedBuilder()
+            .setDescription("Napewno chcesz zamknąć ticket ?")
+            .setColor("#adecea")
+
+        const row = new ActionRowBuilder();
+
+        btns.forEach((btn) => {
+            row.components.push(
+                new ButtonBuilder()
+                    .setCustomId(btn.customId)
+                    .setLabel(btn.label)
+                    .setStyle(btn.color)
+            )
+        })
+
+        await interaction.editReply({
+            content: `<@${interaction.user.id}>`,
+            embeds: [embed],
+            components: [row]
+        })
+    }
+});
+
+
+client.on('interactionCreate', async interaction => {
+    if (!interaction.isButton()) return;
+
+    if (interaction.customId === "cancel") {
+        await interaction.message.delete();
+    }
+})
+
+client.on('interactionCreate', async interaction => {
+    if (!interaction.isButton()) return;
+
+    if (interaction.customId === "confirm-exit-ticket") {
+        try {
+            const timestamp = interaction.createdTimestamp;
+            const date = new Date(timestamp);
             const channel = client.channels.cache.get(interaction.channelId);
             const transcriptChannel = client.channels.cache.get("1092099439725903912")
+            const getUserId = userChannelData.get(channel.id)
+            const userOfTicket = await client.users.fetch(getUserId);
             const messages = await channel.messages.fetch();
             const transcript = [];
 
@@ -180,20 +271,19 @@ client.on('interactionCreate', async interaction => {
                 <div class="ticket-header">
                     <img class="ticket-header-logo" src="https://i.imgur.com/iZUkMPH.png" width="75px">
                     <div class="ticket-header-text">
-                        <p class="ticket-header-title">Infinity Gaming</p>
-                        <p class="ticket-header-name">#ticket-kondziu6386</p>
-                        <p class="ticket-user-id">201056229370363906</p>
+                        <p class="ticket-header-title">Heaven Project</p>
+                        <p class="ticket-header-name">#ticket-${userOfTicket.tag}</p>
+                        <p class="ticket-user-id">${userOfTicket.id}</p>
                     </div>
                 </div>
                 ${transcript.join('\n')}
             </body>
-
             </html>
             `
             const attachment = new AttachmentBuilder(Buffer.from(htmlCode), { name: 'transcript.html' });
-            await transcriptChannel.send({ content: `<@${interaction.user.id}>`, files: [attachment] })
-            // await user.send({ content: "Here is the transcript", files: [attachment] })
-            await interaction.guild.channels.delete(interaction.channelId)
+            await transcriptChannel.send({ content: `<@${userOfTicket.id}> - ${date.toLocaleString()}`, files: [attachment] })
+            await userOfTicket.send({ content: `Ticket został zamknięty przez <@${interaction.user.id}>.`, files: [attachment] })
+            interaction.guild.channels.delete(interaction.channelId)
 
         } catch (error) {
             console.error(error);
