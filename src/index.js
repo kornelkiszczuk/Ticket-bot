@@ -5,7 +5,9 @@ const { Client,
     ActionRowBuilder,
     ButtonBuilder,
     ButtonStyle,
-    ChannelType } = require('discord.js')
+    ChannelType,
+    Permissions
+} = require('discord.js')
 
 require('dotenv').config();
 
@@ -92,7 +94,7 @@ client.on("interactionCreate", async (interaction) => {
         )
 
         await channel.send({
-            content: `@${interaction.user.username}`,
+            content: `<@${interaction.user.id}>`,
             embeds: [embed],
             components: [row]
         })
@@ -167,7 +169,7 @@ client.on('interactionCreate', async (interaction) => {
 });
 
 
-client.on('interactionCreate', async interaction => {
+client.on('interactionCreate', async (interaction) => {
     if (!interaction.isButton()) return;
 
     if (interaction.customId === "cancel") {
@@ -198,17 +200,7 @@ client.on('interactionCreate', async interaction => {
                 const timestamp = msg.createdTimestamp;
                 const date = new Date(timestamp);
 
-                const line = `
-                <div class="ticket-message">
-                    <img src="${msg.author.avatarURL()}" width="40px" style="border-radius: 50%;">
-                    <div class="ticket-message-content">
-                        <div class="ticket-message-content-info">
-                            <p class="ticket-message-content-info-author">${msg.author.username}</p>
-                            <p class="ticket-message-content-info-date">${date.toLocaleString()}</p>
-                        </div>
-                        <p>${msg.content}</p>
-                    </div>
-                </div>`
+                const line = `<div class="ticket-message"><img src="${msg.author.avatarURL()}" width="40px" style="border-radius: 50%;"><div class="ticket-message-content"><div class="ticket-message-content-info"><p class="ticket-message-content-info-author">${msg.author.username}</p><p class="ticket-message-content-info-date">${date.toLocaleString()}</p></div><p>${msg.content}</p></div></div>`
                 transcript.push(line);
             });
 
@@ -231,5 +223,33 @@ client.on('interactionCreate', async interaction => {
         }
     }
 });
+
+
+client.on("interactionCreate", async (interaction) => {
+    if (!interaction.isChatInputCommand()) return;
+
+    interaction.deferReply({ ephemeral: true })
+    if (interaction.commandName === "add") {
+        const user = interaction.options.get('userid').value;
+        const userToAdd = await client.users.fetch(user);
+
+        if (interaction.member.permissions.has('0x00000400')) {
+            await interaction.editReply({
+                content: `Dodałeś użytkownika <@${userToAdd.id}> do ticketu.`,
+                ephemeral: true
+            })
+            interaction.channel.permissionOverwrites.set([
+                {
+                    id: userToAdd.id,
+                    allow: ['0x00000400']
+                }
+            ])
+        } else {
+            interaction.deleteReply();
+
+        }
+
+    }
+})
 
 client.login(process.env.TOKEN)

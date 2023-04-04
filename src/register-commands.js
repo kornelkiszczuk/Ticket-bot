@@ -3,25 +3,25 @@ require('dotenv').config();
 
 const commands = [
     {
-        name: "deletefromticket",
+        name: "remove",
         description: "Usuwa użytkownikowi dostęp do przeglądania danego ticketu, w którym została użyta komenda",
-        option: [
+        options: [
             {
                 name: 'userid',
                 description: 'numer id użytkownika',
-                type: ApplicationCommandOptionType.Number,
+                type: ApplicationCommandOptionType.User,
                 required: true
             },
         ]
     },
     {
-        name: "addtoticket",
+        name: "add",
         description: "Dodaje użytkownikowi dostęp do przeglądania danego ticketu, w którym została użyta komenda",
-        option: [
+        options: [
             {
                 name: 'userid',
                 description: 'numer id użytkownika',
-                type: ApplicationCommandOptionType.Number,
+                type: ApplicationCommandOptionType.User,
                 required: true
             },
         ]
