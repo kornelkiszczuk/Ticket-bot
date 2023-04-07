@@ -250,8 +250,8 @@ client.on("interactionCreate", async (interaction) => {
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
-  interaction.deferReply({ ephemeral: true });
   if (interaction.commandName === "add") {
+    interaction.deferReply({ ephemeral: true });
     const user = interaction.options.get("userid").value;
     const userToAdd = await client.users.fetch(user);
     const channel = client.channels.cache.get(interaction.channelId);
@@ -266,24 +266,27 @@ client.on("interactionCreate", async (interaction) => {
         allow: ["0x00000400"],
       })
 
-      interaction.channel.permissionOverwrites.set(defaultPermissions);
+      channel.permissionOverwrites.set(defaultPermissions);
 
     } else {
       interaction.deleteReply();
     }
   }
   if (interaction.commandName === "remove") {
+    interaction.deferReply({ ephemeral: true });
+
     const user = interaction.options.get("userid").value;
-    const userToAdd = await client.users.fetch(user);
+    const userToRemove = await client.users.fetch(user);
+    const channel = client.channels.cache.get(interaction.channelId);
 
     if (interaction.member.permissions.has("0x00000400")) {
+
       interaction.deleteReply();
-      interaction.channel.permissionOverwrites.set([
-        {
-          id: userToAdd.id,
-          deny: ["0x00000400"],
-        },
-      ]);
+      const defaultPermissions = defaultChannelPermissions.get(channel.id);
+      const permissionsAfterRemove = defaultPermissions.filter(p => p.id !== userToRemove.id)
+      channel.permissionOverwrites.set(permissionsAfterRemove);
+      defaultChannelPermissions.set(channel.id, permissionsAfterRemove);
+
     } else {
       interaction.deleteReply();
     }
