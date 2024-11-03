@@ -199,7 +199,7 @@ client.on("interactionCreate", async (interaction) => {
       const date = new Date(timestamp);
       const channel = client.channels.cache.get(interaction.channelId);
       const transcriptChannel = client.channels.cache.get(
-        "1092099439725903912"
+        "1302491516060696586"
       );
       // ponizej fetchowanie zapisanego uzytkownika zakladajacego ticket
       const getUserId = userChannelData.get(channel.id);

@@ -33,11 +33,9 @@ client.on('ready', async (c) => {
         row.components.push(
             new StringSelectMenuBuilder()
                 .addOptions([
-                    { label: 'ck', value: 'ck', emoji: "☠️" },
                     { label: 'pytanie', value: 'pytanie', emoji: "📝" },
                     { label: 'Zwrot', value: 'zwrot', emoji: "✨" },
                     { label: 'Skarga', value: 'skarga', emoji: "🤬" },
-                    { label: 'Podanie o ub', value: 'ub', emoji: "🪧" },
                     { label: 'błędy', value: 'bledy', emoji: "🛠️" },
                     { label: 'inne', value: 'inne', emoji: "🛡️" },
                 ])
